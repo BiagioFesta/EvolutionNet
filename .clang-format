@@ -1,0 +1,12 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+AlignAfterOpenBracket: Align
+AllowAllParametersOfDeclarationOnNextLine: false
+BinPackArguments: false
+BinPackParameters: false
+IncludeBlocks: Merge
+ColumnLimit: 120
+PointerAlignment: Left
+AllowShortFunctionsOnASingleLine: Empty
+...
