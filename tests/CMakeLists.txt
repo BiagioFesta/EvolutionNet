@@ -5,7 +5,7 @@ include(FetchContent)
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG release-1.10.0)
+  GIT_TAG a3460d1aeeaa43fdf137a6adefef10ba0b59fe4b)
 set(gtest_force_shared_crt
     ON
     CACHE BOOL "" FORCE)
@@ -16,11 +16,6 @@ set(INSTALL_GTEST
     OFF
     CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
-
-if(CMAKE_COMPILER_IS_GNUCXX)
-  target_compile_options(gtest PRIVATE "-Wno-maybe-uninitialized")
-  target_compile_options(gtest_main PRIVATE "-Wno-maybe-uninitialized")
-endif()
 
 add_executable(${PROJECT_NAME}_tests TestFlatSet.cpp TestFlatMap.cpp)
 target_link_libraries(${PROJECT_NAME}_tests PRIVATE ${PROJECT_NAME} gtest gtest_main)
