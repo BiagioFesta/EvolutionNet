@@ -32,4 +32,4 @@ jobs:
     - name: Test
       working-directory: ${{github.workspace}}/build
       shell: bash
-      run: ctest --output-on-failure -C $BUILD_TYPE
+      run: ctest --output-on-failure --test-dir tests/ -C $BUILD_TYPE
