@@ -271,7 +271,7 @@ void Population<Genome>::offspringSpecies(RndEngine* rndEngine) {
             parent2 = &(population_[specie[id1]]);
           } else {
             parent1 = &(population_[specie[id1]]);
-            parent2 = &(population_[othSpecie[id1]]);
+            parent2 = &(population_[othSpecie[id2]]);
           }
         } else {
           // Mating across same specie
