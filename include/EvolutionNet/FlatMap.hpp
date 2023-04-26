@@ -65,7 +65,8 @@ class FlatMap {
   inline Value& nthValue(const std::size_t nth) noexcept;
 
   /*! \return the vector containing all values.
-   *  \note The order of values is not sorted! They are sorted by order of insertion.
+   *  \note The order of values is not sorted! They are sorted by order of
+   * insertion.
    */
   inline const std::vector<Value>& valuesVector() const noexcept;
   inline std::vector<Value>& valuesVector() noexcept;
@@ -77,7 +78,8 @@ class FlatMap {
 
 template <typename Key, typename Value>
 template <typename... Args>
-inline Value* FlatMap<Key, Value>::insert(const Key key, Args&&... args) noexcept {
+inline Value* FlatMap<Key, Value>::insert(const Key key,
+                                          Args&&... args) noexcept {
   assert(this->operator[](key) == nullptr);
 
   keys_.emplace_back(key, values_.size());
@@ -86,8 +88,10 @@ inline Value* FlatMap<Key, Value>::insert(const Key key, Args&&... args) noexcep
   KeyIndex* beg = keys_.data();
   KeyIndex* end = beg + keys_.size();
   KeyIndex* last = end - 1;
-  KeyIndex* bound =
-      std::lower_bound(beg, last, key, [](const KeyIndex& el, const Key& key) noexcept { return el.first < key; });
+  KeyIndex* bound = std::lower_bound(
+      beg, last, key, [](const KeyIndex& el, const Key& key) noexcept {
+        return el.first < key;
+      });
   std::rotate(bound, last, end);
 
   assert(std::is_sorted(keys_.cbegin(), keys_.cend()));
@@ -99,8 +103,13 @@ inline Value* FlatMap<Key, Value>::insert(const Key key, Args&&... args) noexcep
 
 template <typename Key, typename Value>
 inline Value* FlatMap<Key, Value>::operator[](const Key key) noexcept {
-  const auto finder = std::lower_bound(
-      keys_.begin(), keys_.end(), key, [](const KeyIndex& el, const Key& key) noexcept { return el.first < key; });
+  const auto finder =
+      std::lower_bound(keys_.begin(),
+                       keys_.end(),
+                       key,
+                       [](const KeyIndex& el, const Key& key) noexcept {
+                         return el.first < key;
+                       });
   if (finder != keys_.end() && finder->first == key) {
     return &(values_[finder->second]);
   }
@@ -108,9 +117,15 @@ inline Value* FlatMap<Key, Value>::operator[](const Key key) noexcept {
 }
 
 template <typename Key, typename Value>
-inline const Value* FlatMap<Key, Value>::operator[](const Key key) const noexcept {
-  const auto finder = std::lower_bound(
-      keys_.cbegin(), keys_.cend(), key, [](const KeyIndex& el, const Key& key) noexcept { return el.first < key; });
+inline const Value* FlatMap<Key, Value>::operator[](
+    const Key key) const noexcept {
+  const auto finder =
+      std::lower_bound(keys_.cbegin(),
+                       keys_.cend(),
+                       key,
+                       [](const KeyIndex& el, const Key& key) noexcept {
+                         return el.first < key;
+                       });
   if (finder != keys_.cend() && finder->first == key) {
     return &(values_[finder->second]);
   }
@@ -141,7 +156,8 @@ inline Key FlatMap<Key, Value>::nthKey(const std::size_t nth) const noexcept {
 }
 
 template <typename Key, typename Value>
-inline const Value& FlatMap<Key, Value>::nthValue(const std::size_t nth) const noexcept {
+inline const Value& FlatMap<Key, Value>::nthValue(
+    const std::size_t nth) const noexcept {
   assert(nth < keys_.size());
   assert(keys_.size() == values_.size());
   assert(keys_[nth].second < values_.size());
@@ -157,7 +173,8 @@ inline Value& FlatMap<Key, Value>::nthValue(const std::size_t nth) noexcept {
 }
 
 template <typename Key, typename Value>
-inline const std::vector<Value>& FlatMap<Key, Value>::valuesVector() const noexcept {
+inline const std::vector<Value>& FlatMap<Key, Value>::valuesVector()
+    const noexcept {
   return values_;
 }
 

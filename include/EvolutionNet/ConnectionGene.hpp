@@ -29,7 +29,10 @@ class ConnectionGene final {
   ConnectionGene(const ConnectionGene&) = default;
 
   //! \brief Construct the aggregation.
-  inline ConnectionGene(const NodeId from, const NodeId to, const float weight, const bool enabled) noexcept;
+  inline ConnectionGene(const NodeId from,
+                        const NodeId to,
+                        const float weight,
+                        const bool enabled) noexcept;
 
   //! \return the weight of the link.
   inline float getWeight() const noexcept;

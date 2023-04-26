@@ -6,7 +6,8 @@ AllowAllParametersOfDeclarationOnNextLine: false
 BinPackArguments: false
 BinPackParameters: false
 IncludeBlocks: Merge
-ColumnLimit: 120
+ColumnLimit: 80
+IndentWidth: 2 
 PointerAlignment: Left
 AllowShortFunctionsOnASingleLine: Empty
 ...

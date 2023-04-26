@@ -27,7 +27,7 @@
 #include <type_traits>
 
 namespace EvolutionNet {
-
+// clang-format off
 /*! \class EvolutionNet
  *  \brief This class represents the main interface of this library.
  *  Some of the network features are set at compile time with template logic.
@@ -40,6 +40,7 @@ namespace EvolutionNet {
  *       net.evolve();                                               // Evolve in the next generation and loop!
  *     }
  */
+// clang-format on
 template <int NumInput, int NumOutput, bool Bias, typename ParamConfig>
 class EvolutionNet {
  public:
@@ -51,10 +52,12 @@ class EvolutionNet {
 
   /*! \brief Initialize the Evolution Net.
    *  You need to call this function before any other operation.
-   *  Here you can set the size of the population and the random seed used internally.
-   *  \note `populationSize` must be greater than zero, otherwise Undefined Behavior.
+   *  Here you can set the size of the population and the random seed used
+   * internally. \note `populationSize` must be greater than zero, otherwise
+   * Undefined Behavior.
    */
-  void initialize(const std::size_t populationSize, const SeedT rndSeed = DefaultSeed);
+  void initialize(const std::size_t populationSize,
+                  const SeedT rndSeed = DefaultSeed);
 
   //! \return all the networks (size of the population).
   inline std::vector<NetworkT>& getNetworks() noexcept;
@@ -68,19 +71,23 @@ class EvolutionNet {
   template <typename Fn>
   inline void evaluateAll(Fn&& fn);
 
-  //! \return the best fitness score for this current generation. Call this only after ending evaluation.
+  //! \return the best fitness score for this current generation. Call this only
+  //! after ending evaluation.
   inline FitnessScore getBestFitness() const noexcept;
 
-  //! \return the best network accordinlying with the max fitness score. Call this only after ending evaluation.
+  //! \return the best network accordinlying with the max fitness score. Call
+  //! this only after ending evaluation.
   inline const NetworkT& getBestNetwork() const noexcept;
   inline NetworkT* getBestNetworkMutable() noexcept;
 
   /*! \brief Evolve the population.
-   *  Call this only after ending evaluation, thus, fitness for each network has been set.
+   *  Call this only after ending evaluation, thus, fitness for each network has
+   * been set.
    */
   inline void evolve();
 
-  //! \return the size of the population. This is constant (does not change during evolution).
+  //! \return the size of the population. This is constant (does not change
+  //! during evolution).
   inline std::size_t getPopulationSize() const noexcept;
 
   //! \return the generation counter. First generation stats from 0.
@@ -91,7 +98,9 @@ class EvolutionNet {
   struct IsValidEvaluationFunction : std::false_type {};
 
   template <typename Fn>
-  struct IsValidEvaluationFunction<Fn, std::void_t<decltype(std::declval<Fn>()(std::declval<NetworkT*>()))>>
+  struct IsValidEvaluationFunction<
+      Fn,
+      std::void_t<decltype(std::declval<Fn>()(std::declval<NetworkT*>()))>>
       : std::true_type {};
 
   RndEngine rndEngine_;
@@ -104,8 +113,9 @@ class EvolutionNet {
 };
 
 template <int NumInput, int NumOutput, bool Bias, typename ParamConfig>
-void EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::initialize(const std::size_t populationSize,
-                                                                      const SeedT rndSeed) {
+void EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::initialize(
+    const std::size_t populationSize,
+    const SeedT rndSeed) {
   assert(populationSize > 0);
 
   rndEngine_.seed(rndSeed);
@@ -120,23 +130,27 @@ void EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::initialize(const std:
 }
 
 template <int NumInput, int NumOutput, bool Bias, typename ParamConfig>
-inline std::vector<typename EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::NetworkT>&
+inline std::vector<
+    typename EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::NetworkT>&
 EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::getNetworks() noexcept {
   return networks_;
 }
 
 template <int NumInput, int NumOutput, bool Bias, typename ParamConfig>
 inline typename EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::NetworkT&
-EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::getNetworkNth(const std::size_t i) noexcept {
+EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::getNetworkNth(
+    const std::size_t i) noexcept {
   assert(i < networks_.size());
   return networks_[i];
 }
 
 template <int NumInput, int NumOutput, bool Bias, typename ParamConfig>
 template <typename Fn>
-inline void EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::evaluateAll(Fn&& fn) {
+inline void EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::evaluateAll(
+    Fn&& fn) {
   static_assert(IsValidEvaluationFunction<Fn>::value,
-                "Fn is not a valid evaluation function. It should be something like `void(*)(Network*)`");
+                "Fn is not a valid evaluation function. It should be something "
+                "like `void(*)(Network*)`");
 
   const std::size_t numNetworks = networks_.size();
   FitnessScore fitness, fitnessMax;
@@ -163,21 +177,25 @@ inline void EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::evaluateAll(Fn
 }
 
 template <int NumInput, int NumOutput, bool Bias, typename ParamConfig>
-FitnessScore EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::getBestFitness() const noexcept {
+FitnessScore
+EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::getBestFitness()
+    const noexcept {
   assert(bestNetwork_ != nullptr);
   return bestNetwork_->getFitness();
 }
 
 template <int NumInput, int NumOutput, bool Bias, typename ParamConfig>
 const typename EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::NetworkT&
-EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::getBestNetwork() const noexcept {
+EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::getBestNetwork()
+    const noexcept {
   assert(bestNetwork_ != nullptr);
   return *bestNetwork_;
 }
 
 template <int NumInput, int NumOutput, bool Bias, typename ParamConfig>
 typename EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::NetworkT*
-EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::getBestNetworkMutable() noexcept {
+EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::
+    getBestNetworkMutable() noexcept {
   assert(bestNetwork_ != nullptr);
   return bestNetwork_;
 }
@@ -192,17 +210,22 @@ inline void EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::evolve() {
 }
 
 template <int NumInput, int NumOutput, bool Bias, typename ParamConfig>
-inline std::size_t EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::getPopulationSize() const noexcept {
+inline std::size_t
+EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::getPopulationSize()
+    const noexcept {
   return population_.getPopulationSize();
 }
 
 template <int NumInput, int NumOutput, bool Bias, typename ParamConfig>
-inline std::size_t EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::getCounterGeneration() const noexcept {
+inline std::size_t
+EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::getCounterGeneration()
+    const noexcept {
   return counterGeneration_;
 }
 
 template <int NumInput, int NumOutput, bool Bias, typename ParamConfig>
-inline void EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::computeNetworks() {
+inline void
+EvolutionNet<NumInput, NumOutput, Bias, ParamConfig>::computeNetworks() {
   const std::size_t popSize = population_.getPopulationSize();
   assert(networks_.size() == popSize);
 

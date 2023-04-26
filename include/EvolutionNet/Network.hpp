@@ -37,16 +37,19 @@ class Network final {
   void initializeFromGenome(const Genome& genome);
 
   //! \brief Set the input value (input-th).
-  inline void setInputValue(const std::size_t input, const float value) noexcept;
+  inline void setInputValue(const std::size_t input,
+                            const float value) noexcept;
 
-  //! \return the output value (output-th). Remember to `feedforward` before take this value.
+  //! \return the output value (output-th). Remember to `feedforward` before
+  //! take this value.
   inline float getOutputValue(const std::size_t output) const noexcept;
 
   //! \brief simply, feed forwars algorithm network.
   template <typename ParamConfig>
   void feedForward();
 
-  //! \brief assign a fitness value to this network. Higher value means better score.
+  //! \brief assign a fitness value to this network. Higher value means better
+  //! score.
   inline void setFitness(const FitnessScore fitness) noexcept;
 
   //! \return the fitness score of this network.
@@ -65,7 +68,8 @@ class Network final {
   bool deserialize(std::istream* is);
 
   /*! \brief Check equality between two network structures.
-   *  \note Only structure will be checked. Fitness value and current node values will not be checked.
+   *  \note Only structure will be checked. Fitness value and current node
+   * values will not be checked.
    */
   bool sameStructure(const Network& rhs) const noexcept;
 
@@ -77,7 +81,7 @@ class Network final {
   std::vector<NodeId> nodes_;
   std::vector<float> nodeValues_;
   std::vector<std::vector<IncomingConnection>> inConnections_;
-  FitnessScore fitness_;
+  FitnessScore fitness_ = 0.f;
 };
 
 template <typename Genome>
@@ -104,7 +108,8 @@ void Network<Genome>::initializeFromGenome(const Genome& genome) {
   for (const auto& connGene : genome.getConnections()) {
     assert(connGene.getTo() < inConnections_.size());
     if (connGene.getEnabled()) {
-      inConnections_[connGene.getTo()].emplace_back(connGene.getFrom(), connGene.getWeight());
+      inConnections_[connGene.getTo()].emplace_back(connGene.getFrom(),
+                                                    connGene.getWeight());
     }
   }
 
@@ -112,14 +117,16 @@ void Network<Genome>::initializeFromGenome(const Genome& genome) {
 }
 
 template <typename Genome>
-inline void Network<Genome>::setInputValue(const std::size_t input, const float value) noexcept {
+inline void Network<Genome>::setInputValue(const std::size_t input,
+                                           const float value) noexcept {
   assert(input < Genome::NumInputValue);
   assert(input + 1 < nodeValues_.size());
   nodeValues_[input + 1] = value;
 }
 
 template <typename Genome>
-inline float Network<Genome>::getOutputValue(const std::size_t output) const noexcept {
+inline float Network<Genome>::getOutputValue(
+    const std::size_t output) const noexcept {
   assert(output < Genome::NumOutputValue);
   assert(Genome::NumInputValue + 1 + output < nodeValues_.size());
   return nodeValues_[Genome::NumInputValue + 1 + output];
@@ -156,17 +163,21 @@ inline FitnessScore Network<Genome>::getFitness() const noexcept {
 }
 
 template <typename Genome>
-void Network<Genome>::serialize(std::ostream* os, const std::size_t bufferSize) const {
+void Network<Genome>::serialize(std::ostream* os,
+                                const std::size_t bufferSize) const {
   const std::size_t TotalNumConnections =
       std::accumulate(inConnections_.cbegin(),
                       inConnections_.cend(),
                       std::size_t{0},
-                      [](const auto& acc, const auto& inConnections) noexcept { return acc + inConnections.size(); });
-  const std::size_t TotalSize = (4)                                 // Magic number
-                                + (4)                               // Num of nodes
-                                + (4 * nodes_.size())               // Node IDs
-                                + (4 * nodes_.size())               // Num In Connections for each node
-                                + ((4 + 4) * TotalNumConnections);  // Connection Data
+                      [](const auto& acc, const auto& inConnections) noexcept {
+                        return acc + inConnections.size();
+                      });
+  const std::size_t TotalSize =
+      (4)                                 // Magic number
+      + (4)                               // Num of nodes
+      + (4 * nodes_.size())               // Node IDs
+      + (4 * nodes_.size())               // Num In Connections for each node
+      + ((4 + 4) * TotalNumConnections);  // Connection Data
 
   std::size_t offset = 0, bytesToWrite;
   auto data = std::make_unique<unsigned char[]>(TotalSize);
@@ -178,7 +189,8 @@ void Network<Genome>::serialize(std::ostream* os, const std::size_t bufferSize) 
 
   // Num of Nodes (4 bytes)
   assert(offset + 4 <= TotalSize);
-  *reinterpret_cast<std::uint32_t*>(data.get() + 4) = static_cast<std::uint32_t>(nodes_.size());
+  *reinterpret_cast<std::uint32_t*>(data.get() + 4) =
+      static_cast<std::uint32_t>(nodes_.size());
   offset += 4;
 
   for (const NodeId nodeId : nodes_) {
@@ -189,7 +201,8 @@ void Network<Genome>::serialize(std::ostream* os, const std::size_t bufferSize) 
 
   for (const auto& inConnections : inConnections_) {
     assert(offset + 4 <= TotalSize);
-    *reinterpret_cast<std::uint32_t*>(data.get() + offset) = static_cast<std::uint32_t>(inConnections.size());
+    *reinterpret_cast<std::uint32_t*>(data.get() + offset) =
+        static_cast<std::uint32_t>(inConnections.size());
     offset += 4;
 
     for (const auto& [nodeFrom, weight] : inConnections) {
@@ -199,7 +212,8 @@ void Network<Genome>::serialize(std::ostream* os, const std::size_t bufferSize) 
 
       assert(offset + 4 <= TotalSize);
       static_assert(sizeof(float) == sizeof(std::uint32_t));
-      *reinterpret_cast<std::uint32_t*>(data.get() + offset) = *reinterpret_cast<const std::uint32_t*>(&weight);
+      *reinterpret_cast<std::uint32_t*>(data.get() + offset) =
+          *reinterpret_cast<const std::uint32_t*>(&weight);
       offset += 4;
     }
   }
@@ -265,7 +279,8 @@ bool Network<Genome>::deserialize(std::istream* is) {
 
       inConnections_[i].emplace_back(
           *reinterpret_cast<NodeId*>(&buffer8),
-          *reinterpret_cast<float*>(reinterpret_cast<unsigned char*>(&buffer8) + sizeof(NodeId)));
+          *reinterpret_cast<float*>(reinterpret_cast<unsigned char*>(&buffer8) +
+                                    sizeof(NodeId)));
     }
   }
 

@@ -1,4 +1,6 @@
 build*/
+_bld*/
+.vscode/*
 .ccls-cache/
 compile_commands.json
 .dir-locals.el
