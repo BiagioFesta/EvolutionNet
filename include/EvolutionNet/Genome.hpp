@@ -238,7 +238,8 @@ float Genome<NumInput, NumOutput, Bias>::computeSimilarity(
 
   weightDifference = numMatching ? weightDifference / numMatching : 0.f;
 
-  N = std::max(getNumConnectionGenes(), oth.getNumConnectionGenes());
+  N = static_cast<int>(
+      std::max(getNumConnectionGenes(), oth.getNumConnectionGenes()));
   N = N < ParamConfig::NormalizedSizeGene ? 1 : N;
 
   const float t1 = ParamConfig::SimilarityCoefExcess *
