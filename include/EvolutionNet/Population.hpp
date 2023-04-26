@@ -40,7 +40,8 @@ class Population final {
   void initialize(const std::size_t size, RndEngine* rndEngine);
 
   //! \brief Assign a fitness to the genomeIndex-th member of the population.
-  inline void assignFitness(const std::size_t genomeIndex, const FitnessScore fitness) noexcept;
+  inline void assignFitness(const std::size_t genomeIndex,
+                            const FitnessScore fitness) noexcept;
 
   //! \brief Evolve the population to the next generation.
   template <typename ParamConfig>
@@ -86,12 +87,14 @@ class Population final {
   template <typename ParamConfig>
   void computeStagnation();
 
-  inline FitnessScore computeMaxFitnessInSpecie(const std::size_t specieIndex) const noexcept;
+  inline FitnessScore computeMaxFitnessInSpecie(
+      const std::size_t specieIndex) const noexcept;
 };
 
 template <typename Genome>
 template <typename ParamConfig>
-void Population<Genome>::initialize(const std::size_t size, RndEngine* rndEngine) {
+void Population<Genome>::initialize(const std::size_t size,
+                                    RndEngine* rndEngine) {
   population_.clear();
   population_.resize(size);
   for (std::size_t i = 0; i < size; ++i) {
@@ -110,7 +113,9 @@ void Population<Genome>::initialize(const std::size_t size, RndEngine* rndEngine
 }
 
 template <typename Genome>
-inline void Population<Genome>::assignFitness(const std::size_t genomeIndex, const FitnessScore fitness) noexcept {
+inline void Population<Genome>::assignFitness(
+    const std::size_t genomeIndex,
+    const FitnessScore fitness) noexcept {
   assert(genomeIndex < fitness_.size());
   fitness_[genomeIndex] = fitness;
 }
@@ -134,7 +139,8 @@ inline std::size_t Population<Genome>::getPopulationSize() const noexcept {
 }
 
 template <typename Genome>
-inline const Genome& Population<Genome>::getGenomeNth(const std::size_t index) const noexcept {
+inline const Genome& Population<Genome>::getGenomeNth(
+    const std::size_t index) const noexcept {
   assert(index < population_.size());
   return population_[index];
 }
@@ -154,13 +160,17 @@ void Population<Genome>::speciate() {
 
   // Assign each genome to a specie
   bool found;
-  for (std::size_t genomeIndex = 0; genomeIndex < population_.size(); ++genomeIndex) {
+  for (std::size_t genomeIndex = 0; genomeIndex < population_.size();
+       ++genomeIndex) {
     const auto& genome = population_[genomeIndex];
     found = false;
 
-    for (std::size_t specieIndex = 0; specieIndex < specieRapresentatives_.size() && !found; ++specieIndex) {
+    for (std::size_t specieIndex = 0;
+         specieIndex < specieRapresentatives_.size() && !found;
+         ++specieIndex) {
       const Genome* representative = specieRapresentatives_[specieIndex];
-      if (genome.template computeSimilarity<ParamConfig>(*representative) < ParamConfig::SpeciesSimilarityThreshold) {
+      if (genome.template computeSimilarity<ParamConfig>(*representative) <
+          ParamConfig::SpeciesSimilarityThreshold) {
         species_[specieIndex].push_back(genomeIndex);
         specieOfGenomes_[genomeIndex] = specieIndex;
         found = true;
@@ -186,10 +196,12 @@ void Population<Genome>::computeAdjustedFitness() {
 
   adjustedFitness_.resize(fitness_.size());
 
-  for (std::size_t genomeIndex = 0; genomeIndex < population_.size(); ++genomeIndex) {
+  for (std::size_t genomeIndex = 0; genomeIndex < population_.size();
+       ++genomeIndex) {
     const std::size_t specieIndex = specieOfGenomes_[genomeIndex];
     assert(specieIndex < species_.size());
-    const float adjustedFitness = fitness_[genomeIndex] / species_[specieIndex].size();
+    const float adjustedFitness =
+        fitness_[genomeIndex] / species_[specieIndex].size();
 
     adjustedFitness_[genomeIndex] = adjustedFitness;
     specieFitnessSum_[specieIndex] += adjustedFitness;
@@ -199,21 +211,27 @@ void Population<Genome>::computeAdjustedFitness() {
 template <typename Genome>
 void Population<Genome>::sortSpecies() {
   for (auto& specie : species_) {
-    std::sort(specie.begin(), specie.end(), [this](const std::size_t i, const std::size_t j) noexcept {
-      return adjustedFitness_[j] < adjustedFitness_[i];
-    });
+    std::sort(specie.begin(),
+              specie.end(),
+              [this](const std::size_t i, const std::size_t j) noexcept {
+                return adjustedFitness_[j] < adjustedFitness_[i];
+              });
   }
 }
 
 template <typename Genome>
 void Population<Genome>::computeSpeciesBounds() {
   assert(specieFitnessSum_.size() == species_.size());
-  const FitnessScore sumFitness =
-      std::accumulate(specieFitnessSum_.cbegin(), specieFitnessSum_.cend(), static_cast<FitnessScore>(0));
+  const FitnessScore sumFitness = std::accumulate(specieFitnessSum_.cbegin(),
+                                                  specieFitnessSum_.cend(),
+                                                  static_cast<FitnessScore>(0));
   specieBounds_.resize(species_.size());
 
-  for (std::size_t specieIndex = 0; specieIndex < species_.size(); ++specieIndex) {
-    const std::size_t bound = std::ceil(specieFitnessSum_[specieIndex] / sumFitness * species_[specieIndex].size());
+  for (std::size_t specieIndex = 0; specieIndex < species_.size();
+       ++specieIndex) {
+    const std::size_t bound = static_cast<size_t>(
+        std::ceil(specieFitnessSum_[specieIndex] / sumFitness *
+                  species_[specieIndex].size()));
     assert(bound <= species_[specieIndex].size());
     specieBounds_[specieIndex] = bound;
   }
@@ -225,7 +243,10 @@ void Population<Genome>::offspringSpecies(RndEngine* rndEngine) {
   assert(species_.size() == specieBounds_.size());
   const Genome *parent1, *parent2;
 
-  if (std::all_of(species_.cbegin(), species_.cend(), [](const Specie& specie) noexcept { return specie.empty(); })) {
+  if (std::all_of(
+          species_.cbegin(),
+          species_.cend(),
+          [](const Specie& specie) noexcept { return specie.empty(); })) {
     const std::size_t bound = population_.size() / 2;
     for (std::size_t i = 0; i < bound; ++i) {
       population_[i].template mutate<ParamConfig>(rndEngine);
@@ -236,7 +257,8 @@ void Population<Genome>::offspringSpecies(RndEngine* rndEngine) {
     return;
   }
 
-  for (std::size_t specieIndex = 0; specieIndex < species_.size(); ++specieIndex) {
+  for (std::size_t specieIndex = 0; specieIndex < species_.size();
+       ++specieIndex) {
     const Specie& specie = species_[specieIndex];
     if (specie.empty()) {
       continue;
@@ -245,7 +267,10 @@ void Population<Genome>::offspringSpecies(RndEngine* rndEngine) {
     assert(bound > 0);
 
     // old offspring (to keep)
-    for (std::size_t i = (ParamConfig::SizeSpecieForChampion < specie.size() ? 1 : 0); i < bound; ++i) {
+    for (std::size_t i =
+             (ParamConfig::SizeSpecieForChampion < specie.size() ? 1 : 0);
+         i < bound;
+         ++i) {
       Genome& genome = population_[specie[i]];
       genome.template mutate<ParamConfig>(rndEngine);
     }
@@ -257,16 +282,21 @@ void Population<Genome>::offspringSpecies(RndEngine* rndEngine) {
       if (CheckProbability(rndEngine, ParamConfig::ProbOffspringCrossover)) {
         if (CheckProbability(rndEngine, ParamConfig::ProbMatingInterspecies)) {
           // Interspecie mating
-          std::uniform_int_distribution<std::size_t> rndOthSpecie{0, species_.size() - 1};
+          std::uniform_int_distribution<std::size_t> rndOthSpecie{
+              0, species_.size() - 1};
           std::size_t othSpecieIndex;
           do {
             othSpecieIndex = rndOthSpecie(*rndEngine);
-          } while (species_[othSpecieIndex].empty() || specieBounds_[othSpecieIndex] == 0);
+          } while (species_[othSpecieIndex].empty() ||
+                   specieBounds_[othSpecieIndex] == 0);
           const Specie& othSpecie = species_[othSpecieIndex];
           const std::size_t bound2 = specieBounds_[othSpecieIndex];
-          const std::size_t id1 = std::uniform_int_distribution<std::size_t>{0, bound - 1}(*rndEngine);
-          const std::size_t id2 = std::uniform_int_distribution<std::size_t>{0, bound2 - 1}(*rndEngine);
-          if (adjustedFitness_[specie[id1]] < adjustedFitness_[othSpecie[id2]]) {
+          const std::size_t id1 = std::uniform_int_distribution<std::size_t>{
+              0, bound - 1}(*rndEngine);
+          const std::size_t id2 = std::uniform_int_distribution<std::size_t>{
+              0, bound2 - 1}(*rndEngine);
+          if (adjustedFitness_[specie[id1]] <
+              adjustedFitness_[othSpecie[id2]]) {
             parent1 = &(population_[othSpecie[id2]]);
             parent2 = &(population_[specie[id1]]);
           } else {
@@ -313,7 +343,8 @@ void Population<Genome>::cleanSpecies() {
     if ((!species_[i].empty()) && (specieBounds_[i] > 0)) {
       newSpecies.push_back(std::move(species_[i]));
       newSpecieFitnessMax.push_back(std::move(specieFitnessMax_[i]));
-      newSpecieStagnantGenerations.push_back(std::move(specieStagnantGenerations_[i]));
+      newSpecieStagnantGenerations.push_back(
+          std::move(specieStagnantGenerations_[i]));
       newSpecieRapresentatives.push_back(std::move(specieRapresentatives_[i]));
     }
   }
@@ -331,7 +362,8 @@ void Population<Genome>::electRapresentativeForSpecies(RndEngine* rndEngine) {
     const Specie& specie = species_[i];
     const std::size_t numToKeep = specieBounds_[i];
     if (!specie.empty() && numToKeep > 0) {
-      const std::size_t rndElem = std::uniform_int_distribution<std::size_t>{0, numToKeep - 1}(*rndEngine);
+      const std::size_t rndElem = std::uniform_int_distribution<std::size_t>{
+          0, numToKeep - 1}(*rndEngine);
       specieRapresentatives_[i] = &(population_[specie[rndElem]]);
     }
   }
@@ -343,16 +375,20 @@ void Population<Genome>::computeStagnation() {
   assert(specieFitnessMax_.size() == species_.size());
   assert(specieStagnantGenerations_.size() == species_.size());
 
-  for (std::size_t specieIndex = 0; specieIndex < species_.size(); ++specieIndex) {
+  for (std::size_t specieIndex = 0; specieIndex < species_.size();
+       ++specieIndex) {
     if (!species_[specieIndex].empty()) {
-      const FitnessScore currentMaxFitness = computeMaxFitnessInSpecie(specieIndex);
+      const FitnessScore currentMaxFitness =
+          computeMaxFitnessInSpecie(specieIndex);
       const FitnessScore historicalMaxFitness = specieFitnessMax_[specieIndex];
 
-      if (specieStagnantGenerations_[specieIndex] == 0 || historicalMaxFitness < currentMaxFitness) {
+      if (specieStagnantGenerations_[specieIndex] == 0 ||
+          historicalMaxFitness < currentMaxFitness) {
         specieFitnessMax_[specieIndex] = currentMaxFitness;
         specieStagnantGenerations_[specieIndex] = 1;
       } else {
-        if (ParamConfig::GenForStagningSpecies < (++specieStagnantGenerations_[specieIndex])) {
+        if (ParamConfig::GenForStagningSpecies <
+            (++specieStagnantGenerations_[specieIndex])) {
           species_[specieIndex].clear();
         }
       }
@@ -361,7 +397,8 @@ void Population<Genome>::computeStagnation() {
 }
 
 template <typename Genome>
-inline FitnessScore Population<Genome>::computeMaxFitnessInSpecie(const std::size_t specieIndex) const noexcept {
+inline FitnessScore Population<Genome>::computeMaxFitnessInSpecie(
+    const std::size_t specieIndex) const noexcept {
   assert(specieIndex < species_.size());
   assert(!species_[specieIndex].empty());
   assert(species_[specieIndex][0] < adjustedFitness_.size());

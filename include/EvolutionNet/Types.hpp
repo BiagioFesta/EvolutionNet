@@ -20,8 +20,8 @@
 #define EVOLUTION_NET_TYPES_HPP
 #include <algorithm>
 #include <cmath>
-#include <random>
 #include <cstdint>
+#include <random>
 
 namespace EvolutionNet {
 
@@ -43,12 +43,15 @@ struct DefaultParamConfig {
   static constexpr float SimilarityCoefExcess = 1.f;
   static constexpr float SimilarityCoefDisj = 1.f;
   static constexpr float SimilarityCoefWeight = 3.f;
-  static constexpr float ProbOffspringCrossover = 0.75;
-  static constexpr float ProbMatingInterspecies = 0.001;
+  static constexpr float ProbOffspringCrossover = 0.75f;
+  static constexpr float ProbMatingInterspecies = 0.001f;
   static constexpr std::size_t SizeSpecieForChampion = 5;
   static constexpr std::size_t GenForStagningSpecies = 15;
-  static inline std::uniform_real_distribution<float> DistributionNewWeight{-1.f, 1.f};
-  static inline std::normal_distribution<float> DistributionPertWeight{0.f, 1.f};
+  static inline std::uniform_real_distribution<float> DistributionNewWeight{
+      -1.f,
+      1.f};
+  static inline std::normal_distribution<float> DistributionPertWeight{0.f,
+                                                                       1.f};
 
   static float WeightPerturbation(float weight, RndEngine* rndEngine) noexcept {
     weight += DistributionPertWeight(*rndEngine) / 50;

@@ -55,8 +55,9 @@ class FlatSet {
   inline bool empty() const noexcept;
 
   /*! \brief Insert a new element in the container.
-   *  The new element will be inserted in a "sorted way" (the container will keep elements sorted)
-   *  \note The element must not already exist in the container. Otherwise undefined behavior!
+   *  The new element will be inserted in a "sorted way" (the container will
+   * keep elements sorted) \note The element must not already exist in the
+   * container. Otherwise undefined behavior!
    */
   inline void insert(T value);
 

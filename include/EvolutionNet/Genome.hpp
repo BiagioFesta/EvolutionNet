@@ -57,7 +57,9 @@ class Genome final {
    *  \note This assume `genome1` has better fitness.
    */
   template <typename ParamConfig>
-  void crossover(const Genome& genome1, const Genome& genome2, RndEngine* rndEngine);
+  void crossover(const Genome& genome1,
+                 const Genome& genome2,
+                 RndEngine* rndEngine);
 
   //! \return the distance (0 means they are equivalents) among genomes.
   template <typename ParamConfig>
@@ -87,7 +89,8 @@ class Genome final {
   std::vector<LayerId> layerOfNodes_;
 
   template <typename ParamConfig>
-  static void mutateWeight(RndEngine* rndEngine, ConnectionGene* connectionGene);
+  static void mutateWeight(RndEngine* rndEngine,
+                           ConnectionGene* connectionGene);
 
   template <typename ParamConfig>
   void mutateAddNewNode(RndEngine* rndEngine);
@@ -97,13 +100,17 @@ class Genome final {
 
   bool validate() const;
 
-  inline void emplaceNewConnectionGene(const NodeId from, const NodeId to, const float weight);
+  inline void emplaceNewConnectionGene(const NodeId from,
+                                       const NodeId to,
+                                       const float weight);
 
   inline void assignLayerNewNode(const NodeId nodeId, const LayerId layerId);
 
-  inline ConnectionGene* existConnection(const NodeId from, const NodeId to) noexcept;
+  inline ConnectionGene* existConnection(const NodeId from,
+                                         const NodeId to) noexcept;
 
-  static inline ConnectionHash hashConnection(const NodeId from, const NodeId to) noexcept;
+  static inline ConnectionHash hashConnection(const NodeId from,
+                                              const NodeId to) noexcept;
 };
 
 template <int NumInput, int NumOutput, bool Bias>
@@ -163,7 +170,9 @@ void Genome<NumInput, NumOutput, Bias>::mutate(RndEngine* rndEngine) {
 
 template <int NumInput, int NumOutput, bool Bias>
 template <typename ParamConfig>
-void Genome<NumInput, NumOutput, Bias>::crossover(const Genome& genome1, const Genome& genome2, RndEngine* rndEngine) {
+void Genome<NumInput, NumOutput, Bias>::crossover(const Genome& genome1,
+                                                  const Genome& genome2,
+                                                  RndEngine* rndEngine) {
   connections_.clear();
 
   const ConnectionGene* inheritGene;
@@ -175,7 +184,8 @@ void Genome<NumInput, NumOutput, Bias>::crossover(const Genome& genome1, const G
     hashConn = hashConnection(gene1.getFrom(), gene1.getTo());
 
     if (const ConnectionGene* gene2 = genome2.connections_[hashConn];
-        gene2 && !CheckProbability(rndEngine, ParamConfig::ProbInheritOnFitterGenome)) {
+        gene2 &&
+        !CheckProbability(rndEngine, ParamConfig::ProbInheritOnFitterGenome)) {
       inheritGene = gene2;
     }
 
@@ -195,7 +205,8 @@ void Genome<NumInput, NumOutput, Bias>::crossover(const Genome& genome1, const G
 
 template <int NumInput, int NumOutput, bool Bias>
 template <typename ParamConfig>
-float Genome<NumInput, NumOutput, Bias>::computeSimilarity(const Genome& oth) const noexcept {
+float Genome<NumInput, NumOutput, Bias>::computeSimilarity(
+    const Genome& oth) const noexcept {
   int N;
   int numExcess = 0, numDisjoint = 0, numMatching = 0;
   float weightDifference = 0.f;
@@ -208,9 +219,12 @@ float Genome<NumInput, NumOutput, Bias>::computeSimilarity(const Genome& oth) co
     } else if (j == oth.connections_.size()) {
       ++numExcess;
       ++i;
-    } else if (ConnectionHash hashI = connections_.nthKey(i), hashJ = oth.connections_.nthKey(j); hashI == hashJ) {
+    } else if (ConnectionHash hashI = connections_.nthKey(i),
+               hashJ = oth.connections_.nthKey(j);
+               hashI == hashJ) {
       ++numMatching;
-      weightDifference += std::abs(connections_.nthValue(i).getWeight() - oth.connections_.nthValue(j).getWeight());
+      weightDifference += std::abs(connections_.nthValue(i).getWeight() -
+                                   oth.connections_.nthValue(j).getWeight());
       ++i;
       ++j;
     } else if (connections_.nthKey(i) < oth.connections_.nthKey(j)) {
@@ -227,46 +241,57 @@ float Genome<NumInput, NumOutput, Bias>::computeSimilarity(const Genome& oth) co
   N = std::max(getNumConnectionGenes(), oth.getNumConnectionGenes());
   N = N < ParamConfig::NormalizedSizeGene ? 1 : N;
 
-  const float t1 = ParamConfig::SimilarityCoefExcess * static_cast<float>(numExcess) / static_cast<float>(N);
-  const float t2 = ParamConfig::SimilarityCoefDisj * static_cast<float>(numDisjoint) / static_cast<float>(N);
+  const float t1 = ParamConfig::SimilarityCoefExcess *
+                   static_cast<float>(numExcess) / static_cast<float>(N);
+  const float t2 = ParamConfig::SimilarityCoefDisj *
+                   static_cast<float>(numDisjoint) / static_cast<float>(N);
   const float t3 = ParamConfig::SimilarityCoefWeight * weightDifference;
 
   return t1 + t2 + t3;
 }
 
 template <int NumInput, int NumOutput, bool Bias>
-inline std::size_t Genome<NumInput, NumOutput, Bias>::getNumConnectionGenes() const noexcept {
+inline std::size_t Genome<NumInput, NumOutput, Bias>::getNumConnectionGenes()
+    const noexcept {
   return connections_.size();
 }
 
 template <int NumInput, int NumOutput, bool Bias>
-inline std::size_t Genome<NumInput, NumOutput, Bias>::getNumNodes() const noexcept {
+inline std::size_t Genome<NumInput, NumOutput, Bias>::getNumNodes()
+    const noexcept {
   return static_cast<std::size_t>(nextNodeID_ - !Bias);
 }
 
 template <int NumInput, int NumOutput, bool Bias>
-inline LayerId Genome<NumInput, NumOutput, Bias>::getLayerOfNode(const NodeId nodeId) const noexcept {
+inline LayerId Genome<NumInput, NumOutput, Bias>::getLayerOfNode(
+    const NodeId nodeId) const noexcept {
   assert(static_cast<std::size_t>(nodeId) < layerOfNodes_.size());
   assert(Bias || nodeId != 0);
   return layerOfNodes_[nodeId];
 }
 
 template <int NumInput, int NumOutput, bool Bias>
-inline const FlatMap<LayerId, FlatSet<NodeId>>& Genome<NumInput, NumOutput, Bias>::getLayers() const noexcept {
+inline const FlatMap<LayerId, FlatSet<NodeId>>&
+Genome<NumInput, NumOutput, Bias>::getLayers() const noexcept {
   return layers_;
 }
 
 template <int NumInput, int NumOutput, bool Bias>
-inline const std::vector<ConnectionGene>& Genome<NumInput, NumOutput, Bias>::getConnections() const noexcept {
+inline const std::vector<ConnectionGene>&
+Genome<NumInput, NumOutput, Bias>::getConnections() const noexcept {
   return connections_.valuesVector();
 }
 
 template <int NumInput, int NumOutput, bool Bias>
 template <typename ParamConfig>
-void Genome<NumInput, NumOutput, Bias>::mutateWeight(RndEngine* rndEngine, ConnectionGene* connectionGene) {
-  const float newWeight = CheckProbability(rndEngine, ParamConfig::ProbMutationWeightPerturbation)
-                              ? ParamConfig::WeightPerturbation(connectionGene->getWeight(), rndEngine)
-                              : ParamConfig::NewRndWeight(rndEngine);
+void Genome<NumInput, NumOutput, Bias>::mutateWeight(
+    RndEngine* rndEngine,
+    ConnectionGene* connectionGene) {
+  const float newWeight =
+      CheckProbability(rndEngine, ParamConfig::ProbMutationWeightPerturbation)
+          ? ParamConfig::WeightPerturbation(connectionGene->getWeight(),
+                                            rndEngine)
+          : ParamConfig::NewRndWeight(rndEngine);
 
   connectionGene->setWeight(newWeight);
   assert(newWeight >= -1.f && newWeight <= 1.f);
@@ -276,8 +301,8 @@ template <int NumInput, int NumOutput, bool Bias>
 template <typename ParamConfig>
 void Genome<NumInput, NumOutput, Bias>::mutateAddNewNode(RndEngine* rndEngine) {
   // Pick random connection
-  const std::size_t index =
-      std::uniform_int_distribution<std::size_t>{static_cast<std::size_t>(0), connections_.size() - 1}(*rndEngine);
+  const std::size_t index = std::uniform_int_distribution<std::size_t>{
+      static_cast<std::size_t>(0), connections_.size() - 1}(*rndEngine);
   ConnectionGene& oldConnection = connections_.nthValue(index);
   const NodeId prevNode = oldConnection.getFrom();
   const NodeId succNode = oldConnection.getTo();
@@ -285,14 +310,16 @@ void Genome<NumInput, NumOutput, Bias>::mutateAddNewNode(RndEngine* rndEngine) {
 
   // TODO(bfesta): if connection not enable we skip. is that correct?
   if ((Bias && prevNode == 0) || !oldConnection.getEnabled()) {
-    // TODO(bfesta): this is the fastest way. However, slower way in order to guarantee the adding.
+    // TODO(bfesta): this is the fastest way. However, slower way in order to
+    // guarantee the adding.
     return;
   }
 
   // Disable old connection
   oldConnection.setEnabled(false);
 
-  // Create two new connections (note: oldConnection is invalid reference now because of emplace)
+  // Create two new connections (note: oldConnection is invalid reference now
+  // because of emplace)
   emplaceNewConnectionGene(prevNode, nextNodeID_, 1.f);
   emplaceNewConnectionGene(nextNodeID_, succNode, weight);
 
@@ -302,7 +329,8 @@ void Genome<NumInput, NumOutput, Bias>::mutateAddNewNode(RndEngine* rndEngine) {
   }
 
   // Assign the layer
-  const LayerId layer = (getLayerOfNode(prevNode) + getLayerOfNode(succNode)) / 2;
+  const LayerId layer =
+      (getLayerOfNode(prevNode) + getLayerOfNode(succNode)) / 2;
   assignLayerNewNode(nextNodeID_, layer);
 
   // Increment Next Node ID counter
@@ -311,8 +339,10 @@ void Genome<NumInput, NumOutput, Bias>::mutateAddNewNode(RndEngine* rndEngine) {
 
 template <int NumInput, int NumOutput, bool Bias>
 template <typename ParamConfig>
-void Genome<NumInput, NumOutput, Bias>::mutateAddNewConnection(RndEngine* rndEngine) {
-  std::uniform_int_distribution<std::size_t> rndLayer{static_cast<std::size_t>(0), layers_.size() - 1};
+void Genome<NumInput, NumOutput, Bias>::mutateAddNewConnection(
+    RndEngine* rndEngine) {
+  std::uniform_int_distribution<std::size_t> rndLayer{
+      static_cast<std::size_t>(0), layers_.size() - 1};
   std::size_t layer1, layer2;
 
   do {
@@ -327,8 +357,10 @@ void Genome<NumInput, NumOutput, Bias>::mutateAddNewConnection(RndEngine* rndEng
   const FlatSet<NodeId>& layer1_data = layers_.nthValue(layer1);
   const FlatSet<NodeId>& layer2_data = layers_.nthValue(layer2);
 
-  std::uniform_int_distribution<std::size_t> rndFrom{static_cast<std::size_t>(0), layer1_data.size() - 1};
-  std::uniform_int_distribution<std::size_t> rndTo{static_cast<std::size_t>(0), layer2_data.size() - 1};
+  std::uniform_int_distribution<std::size_t> rndFrom{
+      static_cast<std::size_t>(0), layer1_data.size() - 1};
+  std::uniform_int_distribution<std::size_t> rndTo{static_cast<std::size_t>(0),
+                                                   layer2_data.size() - 1};
 
   const NodeId from = layer1_data.nth(rndFrom(*rndEngine));
   const NodeId to = layer2_data.nth(rndTo(*rndEngine));
@@ -357,7 +389,8 @@ bool Genome<NumInput, NumOutput, Bias>::validate() const {
       assert(false);
       return false;
     }
-    if (layerOfNodes_[connectionGene.getTo()] <= layerOfNodes_[connectionGene.getFrom()]) {
+    if (layerOfNodes_[connectionGene.getTo()] <=
+        layerOfNodes_[connectionGene.getFrom()]) {
       assert(false);
       return false;
     }
@@ -367,9 +400,10 @@ bool Genome<NumInput, NumOutput, Bias>::validate() const {
 }
 
 template <int NumInput, int NumOutput, bool Bias>
-inline void Genome<NumInput, NumOutput, Bias>::emplaceNewConnectionGene(const NodeId from,
-                                                                        const NodeId to,
-                                                                        const float weight) {
+inline void Genome<NumInput, NumOutput, Bias>::emplaceNewConnectionGene(
+    const NodeId from,
+    const NodeId to,
+    const float weight) {
   const ConnectionHash connectionHash = hashConnection(from, to);
   assert(existConnection(from, to) == nullptr);
 
@@ -377,11 +411,14 @@ inline void Genome<NumInput, NumOutput, Bias>::emplaceNewConnectionGene(const No
 }
 
 template <int NumInput, int NumOutput, bool Bias>
-inline void Genome<NumInput, NumOutput, Bias>::assignLayerNewNode(const NodeId node, const LayerId layer) {
+inline void Genome<NumInput, NumOutput, Bias>::assignLayerNewNode(
+    const NodeId node,
+    const LayerId layer) {
   assert(node == static_cast<NodeId>(layerOfNodes_.size()));
 
   if (auto* layerNodes = layers_[layer]; layerNodes != nullptr) {
-    assert(std::find(layerNodes->begin(), layerNodes->end(), node) == layerNodes->end());
+    assert(std::find(layerNodes->begin(), layerNodes->end(), node) ==
+           layerNodes->end());
     layerNodes->insert(node);
   } else {
     layers_.insert(layer)->insert(node);
@@ -390,12 +427,16 @@ inline void Genome<NumInput, NumOutput, Bias>::assignLayerNewNode(const NodeId n
 }
 
 template <int NumInput, int NumOutput, bool Bias>
-inline ConnectionGene* Genome<NumInput, NumOutput, Bias>::existConnection(const NodeId from, const NodeId to) noexcept {
+inline ConnectionGene* Genome<NumInput, NumOutput, Bias>::existConnection(
+    const NodeId from,
+    const NodeId to) noexcept {
   return connections_[hashConnection(from, to)];
 }
 
 template <int NumInput, int NumOutput, bool Bias>
-inline ConnectionHash Genome<NumInput, NumOutput, Bias>::hashConnection(const NodeId from, const NodeId to) noexcept {
+inline ConnectionHash Genome<NumInput, NumOutput, Bias>::hashConnection(
+    const NodeId from,
+    const NodeId to) noexcept {
   ConnectionHash hash = 0;
   hash |= static_cast<ConnectionHash>(from);
   hash |= static_cast<ConnectionHash>(to) << 32;
